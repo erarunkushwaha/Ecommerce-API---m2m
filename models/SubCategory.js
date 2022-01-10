@@ -5,6 +5,8 @@ const SubCategorySchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Please provide sub-category name"],
+      unique: true,
+
       trim: true,
       minlength: [3, "to shoort"],
       maxlength: [40, "Name can not be more than 40 characters"],
@@ -34,5 +36,10 @@ const SubCategorySchema = new mongoose.Schema(
 SubCategorySchema.pre("save", async function () {
   this.slug = await slugify(this.name, { lower: true });
 });
-
+// SubCategorySchema.virtual("parentCategory", {
+//   ref: "Category",
+//   localField: "_id",
+//   foreignField: "category",
+//   justOne: false,
+// });
 module.exports = mongoose.model("SubCategory", SubCategorySchema);

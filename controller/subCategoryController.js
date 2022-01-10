@@ -6,10 +6,14 @@ const slugify = require("slugify");
 const CustomError = require("../errors");
 
 const create = async (req, res) => {
-  const { name, status, category } = req.body;
-  const cat = await Category.findById(category);
+  const { name, status, catSlug } = req.body;
+
+  const cat = await Category.findOne({ slug: catSlug });
+  const { _id: category } = cat;
   if (!cat) {
-    throw new CustomError.NotFoundError(`No Category with id : ${category}`);
+    throw new CustomError.NotFoundError(
+      `this is not: ${category} valid category`
+    );
   }
   const subCategory = await SubCategory.create({
     name,
@@ -20,7 +24,10 @@ const create = async (req, res) => {
 };
 
 const list = async (req, res) => {
-  const subCategory = await SubCategory.find({}).sort({ createdAt: -1 }).exec();
+  const subCategory = await SubCategory.find({}).populate("category", [
+    "name",
+    "slug",
+  ]);
   res.status(StatusCodes.OK).json({ subCategory });
 };
 
@@ -32,10 +39,18 @@ const read = async (req, res) => {
 
 const update = async (req, res) => {
   const { slug } = req.params;
-  const { name, status } = req.body;
+  const { name, status, parentCat } = req.body;
+
+  const cat = await Category.findOne({ slug: parentCat });
+  if (!cat) {
+    throw new CustomError.NotFoundError(
+      `this is not: ${category} valid category`
+    );
+  }
+  const { _id: category } = cat;
   const subCategory = await SubCategory.findOneAndUpdate(
     { slug },
-    { name, status, slug: await slugify(name) },
+    { name, status, slug: await slugify(name), category },
     {
       new: true,
       runValidators: true,
